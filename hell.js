@@ -1,54 +1,89 @@
 var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
     preload: preload,
     create: create,
+    render: render,
     update: update
 });
 
-var barrel_left;
+const SpriteOnReelCount = 10;
 
 function preload() {
-    game.load.spritesheet('reel', 'animation/explosion-2.png', 64, 64, 8);
-    game.load.image('button_start', 'button_start.png')
-    game.load.image('button_stop', 'button_stop.png')
+    game.load.image('button_start', 'button_start.png');
+    game.load.image('button_stop', 'button_stop.png');
+    for (let i = 1; i <= SpriteOnReelCount; i++) {
+        game.load.image('clover_' + i, 'pcp/Clover/card_' + i + '_clover.png');
+    }
 }
-var start_button;
-var stop_button;
+var startButton;
+var stopButton;
 
-var left_reel;
-var left_reel_anim;
-var middle_reel;
-var middle_reel_anim;
-var right_reel;
-var right_reel_anim;
+var maxReelY = 350;
+var minReelY = 10;
+
+var spinSpeed = 3;
+var spinSpeedShift = 0.5;
+var isSpinEnabled = false;
+
+var spriteYGap = 20;
+var spriteWidth = 62;
+var spriteHeight = 84;
+
+var maxReelY = (spriteHeight + spriteYGap) * SpriteOnReelCount;
+var minReelY = 10;
+
+const bottomPanelY = 420;
+var bottomPanel;
+var graphics;
+
+const ReelCount = 3;
+var reels = new Array(ReelCount);
+var lastSpriteInReel = {
+    left: SpriteOnReelCount,
+    middle: SpriteOnReelCount,
+    right: SpriteOnReelCount
+};
 
 function create() {
     game.stage.backgroundColor = '#182d3b';
 
-    left_reel = game.add.image(100, 100, 'reel', 1);
-    left_reel_anim = left_reel.animations.add('span');
+    for (let reelNumber = 0; reelNumber < ReelCount; reelNumber++) {
+        let reel = new Array(SpriteOnReelCount);
+        for (let j = 0; j < SpriteOnReelCount; j++) {
+            reel[j] = game.add.sprite(250 * reelNumber + 100, (spriteHeight + spriteYGap) * j + minReelY, 'clover_' + (j + 1), j);
+            reels[reelNumber] = reel;
+        }
+    }
 
-    middle_reel = game.add.image(200, 100, 'reel', 1);
-    middle_reel_anim = middle_reel.animations.add('span');
+    graphics = game.add.graphics(0, 0);
+    graphics.beginFill(0x022c1b);
+    graphics.drawRect(0, bottomPanelY, game.width, game.height - bottomPanelY);
+    graphics.endFill();
 
-    right_reel = game.add.image(300, 100, 'reel', 1);
-    right_reel_anim = right_reel.animations.add('span');
-
-    start_button = game.add.button(game.world.centerX - 200, 400, 'button_start', startAnimation, this, 0, 0, 0)
-    stop_button = game.add.button(game.world.centerX + 100, 400, 'button_stop', stopAnimation, this, 0, 0, 0)
+    startButton = game.add.button(game.world.centerX - 200, 450, 'button_start', startAnimation, this, 0, 0, 0);
+    stopButton = game.add.button(game.world.centerX + 100, 450, 'button_stop', stopAnimation, this, 0, 0, 0);
 }
 
-function update() {
+function render() {}
 
+function update() {
+    if (!isSpinEnabled) {
+        return;
+    }
+    for (let i = 0; i < ReelCount; i++) {
+        let reel = reels[i];
+        for (let j = 0; j < SpriteOnReelCount; j++) {
+            if (reel[j].y >= maxReelY)
+                reel[j].y = minReelY;
+            else
+                reel[j].y += spinSpeed + spinSpeedShift * i;
+        }
+    }
 }
 
 function startAnimation() {
-    left_reel_anim.play(10, true);
-    middle_reel_anim.play(20, true);
-    right_reel_anim.play(100, true);
+    isSpinEnabled = true;
 }
 
 function stopAnimation() {
-    left_reel_anim.stop()
-    middle_reel_anim.stop()
-    right_reel_anim.stop()
+    isSpinEnabled = false;
 }
