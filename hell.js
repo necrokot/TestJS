@@ -31,7 +31,8 @@ class Reel { //Класс, описывающий один барабан
         }
     }
 
-    update() { //Отвкчает за обновление состояния барабана
+    update() { //Отвечает за обновление состояния барабана
+        //Возможно, более адекватным решением было бы использование Tween'ов, но я не успел с ними хорошо разобраться.
         if (this.isRunning) {
             if (this.winCard != -1) {
                 let winDistance = this.cardList[this.winCard].y - this.winPositionY;
